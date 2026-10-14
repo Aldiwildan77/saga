@@ -4,14 +4,14 @@ A lightweight, generic Saga workflow library for Go. Build workflows from compos
 
 ## Features
 
-- **Generic workflows** — Pass typed input through every task.
-- **Sequential execution** — Execute tasks in a defined order.
-- **Parallel execution** — Run independent tasks concurrently.
-- **Nested workflows** — Compose smaller workflows into larger ones.
-- **Compensation** — Execute compensating actions when a workflow fails.
-- **Execution journal** — Track execution results and successful steps.
-- **Context support** — Respect cancellation during execution.
-- **Error propagation** — Preserve underlying errors for inspection with `errors.Is`.
+- **Generic workflows**: Pass typed input through every task.
+- **Sequential execution**: Execute tasks in a defined order.
+- **Parallel execution**: Run independent tasks concurrently.
+- **Nested workflows**: Compose smaller workflows into larger ones.
+- **Compensation**: Execute compensating actions when a workflow fails.
+- **Execution journal**: Track execution results and successful steps.
+- **Context support**: Respect cancellation during execution.
+- **Error propagation**: Preserve underlying errors for inspection with `errors.Is`.
 
 ## Installation
 
