@@ -16,31 +16,31 @@ func main() {
 	flow := saga.Sequence(
 		saga.Do[Order]("validate", func(
 			ctx context.Context, o Order,
-		) error {
+		) (any, error) {
 			fmt.Println("validate order")
-			return nil
+			return nil, nil
 		}),
 
 		saga.Nested("fulfillment",
 			saga.Do[Order]("reserve", func(
 				ctx context.Context, o Order,
-			) error {
+			) (any, error) {
 				fmt.Println("reserve inventory")
-				return nil
+				return nil, nil
 			}),
 			saga.Do[Order]("pack", func(
 				ctx context.Context, o Order,
-			) error {
+			) (any, error) {
 				fmt.Println("pack order")
-				return nil
+				return nil, nil
 			}),
 		),
 
 		saga.Do[Order]("complete", func(
 			ctx context.Context, o Order,
-		) error {
+		) (any, error) {
 			fmt.Println("complete order")
-			return nil
+			return nil, nil
 		}),
 	)
 

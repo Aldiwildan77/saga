@@ -7,10 +7,10 @@ import (
 	"sync"
 )
 
-func rollback[C any](
+func rollback[I, O any](
 	ctx context.Context,
-	record *Record[C],
-	input C,
+	record *Record[I, O],
+	input I,
 ) error {
 	if record == nil {
 		return nil
@@ -52,15 +52,16 @@ func rollback[C any](
 	return errors.Join(errs...)
 }
 
-func runCompensations[C any](
+func runCompensations[I, O any](
 	ctx context.Context,
-	node *Node[C],
-	input C,
+	node *Node[I, O],
+	input I,
 ) error {
 	actions := node.compensate.actions
 
 	run := func(i int) error {
-		if err := actions[i](ctx, input); err != nil {
+		_, err := actions[i](ctx, input)
+		if err != nil {
 			return ErrorCompensationActionFunc(node.name, err)
 		}
 

@@ -17,29 +17,29 @@ func main() {
 	flow := saga.Parallel(
 		saga.Do[Order]("payment", func(
 			ctx context.Context, o Order,
-		) error {
+		) (any, error) {
 			fmt.Println("payment started")
 			time.Sleep(300 * time.Millisecond)
 			fmt.Println("payment completed")
-			return nil
+			return nil, nil
 		}),
 
 		saga.Do[Order]("shipment", func(
 			ctx context.Context, o Order,
-		) error {
+		) (any, error) {
 			fmt.Println("shipment started")
 			time.Sleep(200 * time.Millisecond)
 			fmt.Println("shipment completed")
-			return nil
+			return nil, nil
 		}),
 
 		saga.Do[Order]("notification", func(
 			ctx context.Context, o Order,
-		) error {
+		) (any, error) {
 			fmt.Println("notification started")
 			time.Sleep(100 * time.Millisecond)
 			fmt.Println("notification completed")
-			return nil
+			return nil, nil
 		}),
 	)
 

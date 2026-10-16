@@ -1,12 +1,13 @@
 package saga
 
-type Record[C any] struct {
-	Node      *Node[C]
-	Children  []*Record[C]
+type Record[I, O any] struct {
+	Node      *Node[I, O]
+	Children  []*Record[I, O]
+	Result    O
 	Succeeded bool
 }
 
-func (r *Record[C]) HasNode() bool {
+func (r *Record[I, O]) HasNode() bool {
 	if r == nil {
 		return false
 	}

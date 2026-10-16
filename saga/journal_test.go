@@ -9,16 +9,16 @@ import (
 func TestExecutionJournal(t *testing.T) {
 	first := Do("reserve", func(
 		context.Context, struct{},
-	) error {
-		return nil
+	) (any, error) {
+		return nil, nil
 	})
 
 	failure := errors.New("payment failed")
 
 	second := Do("charge", func(
 		context.Context, struct{},
-	) error {
-		return failure
+	) (any, error) {
+		return nil, failure
 	})
 
 	root := Sequence(first, second)

@@ -2,7 +2,7 @@ package saga
 
 import "context"
 
-type Action[C any] func(ctx context.Context, fn C) error
+type Action[I, O any] func(ctx context.Context, fn I) (O, error)
 
 type Mode uint8
 
@@ -19,75 +19,75 @@ const (
 	ParallelGroup
 )
 
-type CompensationPlan[C any] struct {
+type CompensationPlan[I, O any] struct {
 	mode    Mode
-	actions []Action[C]
+	actions []Action[I, O]
 }
 
-type Node[C any] struct {
+type Node[I, O any] struct {
 	name       string
 	kind       Kind
-	execute    Action[C]
-	compensate CompensationPlan[C]
-	children   []*Node[C]
+	execute    Action[I, O]
+	compensate CompensationPlan[I, O]
+	children   []*Node[I, O]
 }
 
-func (n *Node[C]) Compensate(plan CompensationPlan[C]) *Node[C] {
+func (n *Node[I, O]) Compensate(plan CompensationPlan[I, O]) *Node[I, O] {
 	clone := *n
-	clone.children = append([]*Node[C](nil), n.children...)
-	clone.compensate = CompensationPlan[C]{
+	clone.children = append([]*Node[I, O](nil), n.children...)
+	clone.compensate = CompensationPlan[I, O]{
 		mode:    plan.mode,
-		actions: append([]Action[C](nil), plan.actions...),
+		actions: append([]Action[I, O](nil), plan.actions...),
 	}
 
 	return &clone
 }
 
-func group[C any](kind Kind, nodes ...*Node[C]) *Node[C] {
-	return &Node[C]{
+func group[I, O any](kind Kind, nodes ...*Node[I, O]) *Node[I, O] {
+	return &Node[I, O]{
 		kind:     kind,
-		children: append([]*Node[C](nil), nodes...),
+		children: append([]*Node[I, O](nil), nodes...),
 	}
 }
 
-func Do[C any](name string, fn Action[C]) *Node[C] {
-	return &Node[C]{
+func Do[I, O any](name string, fn Action[I, O]) *Node[I, O] {
+	return &Node[I, O]{
 		name:    name,
 		kind:    Task,
 		execute: fn,
 	}
 }
 
-func Sequence[C any](nodes ...*Node[C]) *Node[C] {
+func Sequence[I, O any](nodes ...*Node[I, O]) *Node[I, O] {
 	return group(SequenceGroup, nodes...)
 }
 
-func Parallel[C any](nodes ...*Node[C]) *Node[C] {
+func Parallel[I, O any](nodes ...*Node[I, O]) *Node[I, O] {
 	return group(ParallelGroup, nodes...)
 }
 
-func SequentialCompensations[C any](
-	actions ...Action[C],
-) CompensationPlan[C] {
-	return CompensationPlan[C]{
+func SequentialCompensations[I, O any](
+	actions ...Action[I, O],
+) CompensationPlan[I, O] {
+	return CompensationPlan[I, O]{
 		mode:    SequentialMode,
-		actions: append([]Action[C](nil), actions...),
+		actions: append([]Action[I, O](nil), actions...),
 	}
 }
 
-func ParallelCompensations[C any](
-	actions ...Action[C],
-) CompensationPlan[C] {
-	return CompensationPlan[C]{
+func ParallelCompensations[I, O any](
+	actions ...Action[I, O],
+) CompensationPlan[I, O] {
+	return CompensationPlan[I, O]{
 		mode:    ParallelMode,
-		actions: append([]Action[C](nil), actions...),
+		actions: append([]Action[I, O](nil), actions...),
 	}
 }
 
-func Nested[C any](
+func Nested[I, O any](
 	name string,
-	nodes ...*Node[C],
-) *Node[C] {
+	nodes ...*Node[I, O],
+) *Node[I, O] {
 	node := group(SequenceGroup, nodes...)
 	node.name = name
 	return node

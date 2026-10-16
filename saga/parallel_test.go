@@ -14,19 +14,19 @@ func TestParallelFailureCompensatesSuccessfulBranches(t *testing.T) {
 
 	reserve := Do("reserve", func(
 		context.Context, struct{},
-	) error {
-		return nil
+	) (any, error) {
+		return nil, nil
 	}).Compensate(ParallelCompensations(
-		func(context.Context, struct{}) error {
+		func(context.Context, struct{}) (any, error) {
 			compensated.Add(1)
-			return nil
+			return nil, nil
 		},
 	))
 
 	charge := Do("charge", func(
 		context.Context, struct{},
-	) error {
-		return paymentErr
+	) (any, error) {
+		return nil, paymentErr
 	})
 
 	err := Run(
@@ -54,19 +54,19 @@ func TestNestedFailureCompensatesCompletedSteps(t *testing.T) {
 
 	reserve := Do("reserve", func(
 		context.Context, struct{},
-	) error {
-		return nil
+	) (any, error) {
+		return nil, nil
 	}).Compensate(ParallelCompensations(
-		func(context.Context, struct{}) error {
+		func(context.Context, struct{}) (any, error) {
 			compensated.Add(1)
-			return nil
+			return nil, nil
 		},
 	))
 
 	confirm := Do("confirm", func(
 		context.Context, struct{},
-	) error {
-		return stepErr
+	) (any, error) {
+		return nil, stepErr
 	})
 
 	flow := Sequence(

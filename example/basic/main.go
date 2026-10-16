@@ -20,35 +20,35 @@ func main() {
 		saga.Do[Order]("validate-order", func(
 			ctx context.Context,
 			order Order,
-		) error {
+		) (any, error) {
 			fmt.Println("validate order:", order.ID)
-			return nil
+			return nil, nil
 		}),
 
 		saga.Nested("prepare-order",
 			saga.Do[Order]("reserve-inventory", func(
 				ctx context.Context,
 				order Order,
-			) error {
+			) (any, error) {
 				fmt.Println("reserve inventory:", order.ID)
-				return nil
+				return nil, nil
 			}).Compensate(saga.ParallelCompensations[Order](
-				func(context.Context, Order) error {
+				func(context.Context, Order) (any, error) {
 					fmt.Println("release inventory")
-					return nil
+					return nil, nil
 				},
-				func(context.Context, Order) error {
+				func(context.Context, Order) (any, error) {
 					fmt.Println("notify inventory service")
-					return nil
+					return nil, nil
 				},
 			)),
 
 			saga.Do[Order]("verify-address", func(
 				ctx context.Context,
 				order Order,
-			) error {
+			) (any, error) {
 				fmt.Println("verify address:", order.ID)
-				return nil
+				return nil, nil
 			}),
 		),
 
@@ -56,26 +56,26 @@ func main() {
 			saga.Do[Order]("charge-payment", func(
 				ctx context.Context,
 				order Order,
-			) error {
+			) (any, error) {
 				fmt.Println("charge payment:", order.ID)
-				return nil
+				return nil, nil
 			}).Compensate(saga.SequentialCompensations[Order](
-				func(context.Context, Order) error {
+				func(context.Context, Order) (any, error) {
 					fmt.Println("record refund")
-					return nil
+					return nil, nil
 				},
-				func(context.Context, Order) error {
+				func(context.Context, Order) (any, error) {
 					fmt.Println("refund payment")
-					return nil
+					return nil, nil
 				},
 			)),
 
 			saga.Do[Order]("create-shipment", func(
 				ctx context.Context,
 				order Order,
-			) error {
+			) (any, error) {
 				fmt.Println("create shipment:", order.ID)
-				return nil
+				return nil, nil
 			}),
 		),
 
@@ -83,9 +83,9 @@ func main() {
 			saga.Do[Order]("confirm-order", func(
 				ctx context.Context,
 				order Order,
-			) error {
+			) (any, error) {
 				fmt.Println("confirm order:", order.ID)
-				return nil
+				return nil, nil
 			}),
 		),
 	)

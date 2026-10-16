@@ -9,15 +9,18 @@ func TestBuildSequence(t *testing.T) {
 	taskNameReserve := "reserve"
 	taskNameCharge := "charge"
 
-	firstTask := Do(taskNameReserve, func(context.Context, struct{}) error {
-		return nil
+	firstTask := Do(
+		taskNameReserve,
+		func(context.Context, struct{}) (any, error) {
+			return nil, nil
+		},
+	)
+
+	secondTask := Do(taskNameCharge, func(context.Context, struct{}) (any, error) {
+		return nil, nil
 	})
 
-	secondTask := Do(taskNameCharge, func(context.Context, struct{}) error {
-		return nil
-	})
-
-	nodes := []*Node[struct{}]{firstTask, secondTask}
+	nodes := []*Node[struct{}, any]{firstTask, secondTask}
 	flow := Sequence(nodes...)
 
 	if flow.kind != SequenceGroup {
@@ -37,15 +40,15 @@ func TestBuildParallel(t *testing.T) {
 	taskNameReserve := "reserve"
 	taskNameCharge := "charge"
 
-	firstTask := Do(taskNameReserve, func(context.Context, struct{}) error {
-		return nil
+	firstTask := Do(taskNameReserve, func(context.Context, struct{}) (any, error) {
+		return nil, nil
 	})
 
-	secondTask := Do(taskNameCharge, func(context.Context, struct{}) error {
-		return nil
+	secondTask := Do(taskNameCharge, func(context.Context, struct{}) (any, error) {
+		return nil, nil
 	})
 
-	nodes := []*Node[struct{}]{firstTask, secondTask}
+	nodes := []*Node[struct{}, any]{firstTask, secondTask}
 	flow := Parallel(nodes...)
 
 	if flow.kind != ParallelGroup {

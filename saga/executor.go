@@ -7,10 +7,10 @@ import (
 	"sync"
 )
 
-func Run[C any](
+func Run[I, O any](
 	ctx context.Context,
-	root *Node[C],
-	input C,
+	root *Node[I, O],
+	input I,
 ) error {
 	if root == nil {
 		return ErrorRootEmpty
@@ -27,12 +27,12 @@ func Run[C any](
 	return errors.Join(err, rollbackErr)
 }
 
-func execute[C any](
+func execute[I, O any](
 	ctx context.Context,
-	node *Node[C],
-	input C,
-) (*Record[C], error) {
-	record := &Record[C]{Node: node}
+	node *Node[I, O],
+	input I,
+) (*Record[I, O], error) {
+	record := &Record[I, O]{Node: node}
 
 	if err := ctx.Err(); err != nil {
 		return record, err
@@ -44,11 +44,13 @@ func execute[C any](
 			return record, ErrorNodeNoExecuteFunc(node.name)
 		}
 
-		if err := node.execute(ctx, input); err != nil {
+		output, err := node.execute(ctx, input)
+		if err != nil {
 			return record, ErrorNodeExecutedFunc(node.name, err)
 		}
 
 		record.Succeeded = true
+		record.Result = output
 		return record, nil
 	case SequenceGroup:
 		for _, child := range node.children {
@@ -63,7 +65,7 @@ func execute[C any](
 		record.Succeeded = true
 		return record, nil
 	case ParallelGroup:
-		results := make([]*Record[C], len(node.children))
+		results := make([]*Record[I, O], len(node.children))
 		errs := make([]error, len(node.children))
 
 		var wg sync.WaitGroup

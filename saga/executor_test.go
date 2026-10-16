@@ -10,10 +10,10 @@ import (
 func TestRunSequence(t *testing.T) {
 	var executed []string
 
-	step := func(name string) *Node[struct{}] {
-		return Do(name, func(ctx context.Context, fn struct{}) error {
+	step := func(name string) *Node[struct{}, struct{}] {
+		return Do(name, func(ctx context.Context, fn struct{}) (struct{}, error) {
 			executed = append(executed, name)
-			return nil
+			return struct{}{}, nil
 		})
 	}
 
@@ -40,19 +40,19 @@ func TestRunStopsOnFailure(t *testing.T) {
 
 	paymentErr := errors.New("payment failed")
 
-	first := Do("reserve", func(context.Context, struct{}) error {
+	first := Do("reserve", func(context.Context, struct{}) (any, error) {
 		executed = append(executed, "reserve")
-		return nil
+		return nil, nil
 	})
 
-	second := Do("charge", func(context.Context, struct{}) error {
+	second := Do("charge", func(context.Context, struct{}) (any, error) {
 		executed = append(executed, "charge")
-		return paymentErr
+		return nil, paymentErr
 	})
 
-	third := Do("shipment", func(context.Context, struct{}) error {
+	third := Do("shipment", func(context.Context, struct{}) (any, error) {
 		executed = append(executed, "shipment")
-		return nil
+		return nil, nil
 	})
 
 	err := Run(
@@ -84,9 +84,9 @@ func TestRunCancelledContext(t *testing.T) {
 
 	flow := Do("reserve", func(
 		context.Context, struct{},
-	) error {
+	) (any, error) {
 		called = true
-		return nil
+		return nil, nil
 	})
 
 	err := Run(ctx, flow, struct{}{})
