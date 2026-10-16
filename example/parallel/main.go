@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Aldiwildan77/saga/saga"
+	"github.com/Aldiwildan77/saga"
 )
 
 type Order struct {

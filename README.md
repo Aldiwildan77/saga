@@ -21,7 +21,7 @@ A lightweight, generic Saga workflow library for Go. Build workflows from compos
 ## Installation
 
 ```bash
-go get github.com/Aldiwildan77/saga/saga
+go get github.com/Aldiwildan77/saga
 ```
 
 ## Quick Start
@@ -36,7 +36,7 @@ import (
     "fmt"
     "log"
 
-    "github.com/Aldiwildan77/saga/saga"
+    "github.com/Aldiwildan77/saga"
 )
 
 type Order struct {
