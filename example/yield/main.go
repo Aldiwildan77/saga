@@ -1,8 +1,7 @@
-package yield
+package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
@@ -10,46 +9,43 @@ import (
 )
 
 type Checkout struct {
-	items []string
+	Items []string
 }
 
 type CheckoutResponse struct {
-	itemIDs []int
+	ItemIDs []int
 }
 
 func main() {
-
-	checkoutStep := saga.Do("checkout", func(ctx context.Context, checkoutPayload Checkout) (CheckoutResponse, error) {
-		sCtx := saga.NewYieldContext(ctx)
-
-		response := CheckoutResponse{
-			itemIDs: []int{1, 2},
-		}
-
-		saga.Yield(sCtx, response)
-
-		return response, nil
-	})
-
-	sendEmailStep := saga.Do("send-email", func(ctx context.Context, response CheckoutResponse) (bool, error) {
-		if response.itemIDs == nil {
-			return false, errors.New("no item ids")
-		}
-
-		// send email``
-		log.Printf("%v already sent to email", response.itemIDs)
-		return true, nil
-	})
-
 	flow := saga.Sequence(
-		checkoutStep,
-		sendEmailStep,
+		saga.Do[Checkout]("checkout", func(ctx context.Context, payload Checkout) (CheckoutResponse, error) {
+			y, ok := ctx.(saga.Yielder)
+			if !ok {
+				return CheckoutResponse{}, fmt.Errorf("context is not yield-enabled")
+			}
+
+			response := CheckoutResponse{ItemIDs: []int{1, 2}}
+			saga.Yield(y, response)
+			fmt.Println("checkout yielded:", response.ItemIDs)
+			return response, nil
+		}),
+		saga.Do[Checkout]("send-email", func(ctx context.Context, payload Checkout) (bool, error) {
+			y, ok := ctx.(saga.Yielder)
+			if !ok {
+				return false, fmt.Errorf("context is not yield-enabled")
+			}
+
+			response, err := saga.YieldValue[CheckoutResponse](y)
+			if err != nil {
+				return false, err
+			}
+
+			log.Printf("%v already sent to email", response.ItemIDs)
+			return true, nil
+		}),
 	)
 
-	payload := Checkout{
-		items: []string{"item-a", "item-b"},
-	}
-
+	payload := Checkout{Items: []string{"item-a", "item-b"}}
 	if err := saga.Run(context.Background(), flow, payload); err != nil {
 		log.Fatal(err)
 	}
