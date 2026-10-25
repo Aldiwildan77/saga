@@ -137,6 +137,41 @@ saga.Nested("prepare-order",
 )
 ```
 
+### Yielded Values
+
+`Run` wraps the workflow context with a yield-capable context so tasks can store typed values for later retrieval. Use `Yield` to attach a value to the current workflow and `YieldValue` to read it back in a downstream step.
+
+```go
+flow := saga.Sequence(
+    saga.Do[Order]("lookup-customer", func(ctx context.Context, order Order) (Customer, error) {
+        y, ok := ctx.(saga.Yielder)
+        if !ok {
+            return Customer{}, fmt.Errorf("context is not yield-enabled")
+        }
+
+        customer := Customer{ID: "cust-42"}
+        saga.Yield(y, customer)
+        return customer, nil
+    }),
+    saga.Do[Order]("ship-order", func(ctx context.Context, order Order) (bool, error) {
+        y, ok := ctx.(saga.Yielder)
+        if !ok {
+            return false, fmt.Errorf("context is not yield-enabled")
+        }
+
+        customer, err := saga.YieldValue[Customer](y)
+        if err != nil {
+            return false, err
+        }
+
+        fmt.Println("ship to:", customer.ID)
+        return true, nil
+    }),
+)
+```
+
+This pattern works for nested workflows too: a task in a nested group can yield a value that a later sibling or parent step reads from the same workflow context.
+
 ### Compensation
 
 `Compensate` attaches compensating actions to a task. When a workflow fails, the executor uses the execution journal to roll back successful work.
@@ -186,7 +221,9 @@ The repository includes runnable examples:
 | `example/basic` | Complete workflow happy path |
 | `example/compensation` | Failure and compensating actions |
 | `example/nested` | Nested workflow composition |
+| `example/nested-yield` | Nested workflows with yield propagation |
 | `example/parallel` | Concurrent task execution |
+| `example/yield` | Typed value sharing across workflow steps |
 
 Run an example:
 
