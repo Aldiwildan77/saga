@@ -16,7 +16,12 @@ func Run[I any](
 		return ErrorRootEmpty
 	}
 
-	record, err := root.run(ctx, input)
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	yieldCtx := NewYieldContext(ctx)
+	record, err := root.run(yieldCtx, input)
 	if err == nil {
 		return nil
 	}
