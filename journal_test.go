@@ -9,8 +9,8 @@ import (
 func TestExecutionJournal(t *testing.T) {
 	first := Do("reserve", func(
 		context.Context, struct{},
-	) (any, error) {
-		return nil, nil
+	) (struct{}, error) {
+		return struct{}{}, nil
 	})
 
 	failure := errors.New("payment failed")
@@ -23,7 +23,7 @@ func TestExecutionJournal(t *testing.T) {
 
 	root := Sequence(first, second)
 
-	journal, err := execute(context.Background(), root, struct{}{})
+	journal, err := root.run(context.Background(), struct{}{})
 
 	if !errors.Is(err, failure) {
 		t.Fatalf("expected payment error, got %v", err)

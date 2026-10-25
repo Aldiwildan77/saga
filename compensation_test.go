@@ -12,8 +12,8 @@ func TestSequentialCompensation(t *testing.T) {
 
 	task := Do("reserve", func(
 		context.Context, struct{},
-	) (any, error) {
-		return nil, nil
+	) (struct{}, error) {
+		return struct{}{}, nil
 	}).Compensate(SequentialCompensations(
 		func(context.Context, struct{}) (any, error) {
 			calls = append(calls, "release")
@@ -52,8 +52,8 @@ func TestCompensationErrorPreservesExecutionError(t *testing.T) {
 
 	task := Do("reserve", func(
 		context.Context, struct{},
-	) (any, error) {
-		return nil, nil
+	) (struct{}, error) {
+		return struct{}{}, nil
 	}).Compensate(ParallelCompensations(
 		func(context.Context, struct{}) (any, error) {
 			return nil, compensationErr

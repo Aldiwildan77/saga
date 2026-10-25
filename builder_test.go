@@ -20,7 +20,7 @@ func TestBuildSequence(t *testing.T) {
 		return nil, nil
 	})
 
-	nodes := []*Node[struct{}, any]{firstTask, secondTask}
+	nodes := []nodeRunner{firstTask, secondTask}
 	flow := Sequence(nodes...)
 
 	if flow.kind != SequenceGroup {
@@ -31,7 +31,7 @@ func TestBuildSequence(t *testing.T) {
 		t.Fatalf("expected %d children, got %d", len(nodes), len(flow.children))
 	}
 
-	if flow.children[0].name != taskNameReserve {
+	if flow.children[0].nodeName() != taskNameReserve {
 		t.Fatal("unexpected first step")
 	}
 }
@@ -48,7 +48,7 @@ func TestBuildParallel(t *testing.T) {
 		return nil, nil
 	})
 
-	nodes := []*Node[struct{}, any]{firstTask, secondTask}
+	nodes := []nodeRunner{firstTask, secondTask}
 	flow := Parallel(nodes...)
 
 	if flow.kind != ParallelGroup {
@@ -59,7 +59,7 @@ func TestBuildParallel(t *testing.T) {
 		t.Fatalf("expected %d children, got %d", len(nodes), len(flow.children))
 	}
 
-	if flow.children[0].name != taskNameReserve {
+	if flow.children[0].nodeName() != taskNameReserve {
 		t.Fatal("unexpected first step")
 	}
 }

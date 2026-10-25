@@ -12,7 +12,7 @@ A lightweight, generic Saga workflow library for Go. Build workflows from compos
 - **Execution journal**: Track execution results and successful steps.
 - **Context support**: Respect cancellation during execution.
 - **Error propagation**: Preserve underlying errors for inspection with `errors.Is`.
-- **Yield support (TBA)**: Support yielding or pausing workflow execution for future continuation.
+- **Yield support**: Support yielding or pausing workflow execution for future continuation.
 - **Flow visualization (TBA)**: Generate an ASCII representation of workflow structure, including sequential, parallel, and nested nodes.
 - **Cycle detection (TBA)**: Detect cyclic workflow references to prevent invalid workflow structures.
 - **Function registry (TBA)**: Register and resolve reusable task functions by name.

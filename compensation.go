@@ -3,26 +3,42 @@ package saga
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"sync"
 )
 
-func rollback[I, O any](
+func (n *Node[I, O]) compensateNode(
 	ctx context.Context,
-	record *Record[I, O],
-	input I,
+	input any,
 ) error {
+	if len(n.compensate.actions) == 0 {
+		return nil
+	}
+
+	typedInput, ok := input.(I)
+	if !ok {
+		return fmt.Errorf(
+			"compensation for %q: input type mismatch",
+			n.name,
+		)
+	}
+
+	return runCompensations(ctx, n, typedInput)
+}
+
+func rollback(ctx context.Context, record *Record) error {
 	if record == nil {
 		return nil
 	}
 
 	var errs []error
 
-	switch record.Node.kind {
+	switch record.Node.nodeKind() {
 	case Task:
 	case SequenceGroup:
 		for _, v := range slices.Backward(record.Children) {
-			if err := rollback(ctx, v, input); err != nil {
+			if err := rollback(ctx, v); err != nil {
 				errs = append(errs, err)
 			}
 		}
@@ -32,7 +48,7 @@ func rollback[I, O any](
 
 		for _, child := range record.Children {
 			wg.Go(func() {
-				if err := rollback(ctx, child, input); err != nil {
+				if err := rollback(ctx, child); err != nil {
 					mu.Lock()
 					errs = append(errs, err)
 					mu.Unlock()
@@ -44,7 +60,7 @@ func rollback[I, O any](
 	}
 
 	if record.Succeeded {
-		if err := runCompensations(ctx, record.Node, input); err != nil {
+		if err := record.Node.compensateNode(ctx, record.Input); err != nil {
 			errs = append(errs, err)
 		}
 	}

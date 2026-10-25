@@ -40,19 +40,19 @@ func TestRunStopsOnFailure(t *testing.T) {
 
 	paymentErr := errors.New("payment failed")
 
-	first := Do("reserve", func(context.Context, struct{}) (any, error) {
+	first := Do("reserve", func(context.Context, struct{}) (struct{}, error) {
 		executed = append(executed, "reserve")
-		return nil, nil
+		return struct{}{}, nil
 	})
 
-	second := Do("charge", func(context.Context, struct{}) (any, error) {
+	second := Do("charge", func(context.Context, struct{}) (struct{}, error) {
 		executed = append(executed, "charge")
-		return nil, paymentErr
+		return struct{}{}, paymentErr
 	})
 
-	third := Do("shipment", func(context.Context, struct{}) (any, error) {
+	third := Do("shipment", func(context.Context, struct{}) (struct{}, error) {
 		executed = append(executed, "shipment")
-		return nil, nil
+		return struct{}{}, nil
 	})
 
 	err := Run(

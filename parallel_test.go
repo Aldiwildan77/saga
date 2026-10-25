@@ -54,8 +54,8 @@ func TestNestedFailureCompensatesCompletedSteps(t *testing.T) {
 
 	reserve := Do("reserve", func(
 		context.Context, struct{},
-	) (any, error) {
-		return nil, nil
+	) (struct{}, error) {
+		return struct{}{}, nil
 	}).Compensate(ParallelCompensations(
 		func(context.Context, struct{}) (any, error) {
 			compensated.Add(1)

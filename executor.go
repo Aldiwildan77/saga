@@ -7,73 +7,98 @@ import (
 	"sync"
 )
 
-func Run[I, O any](
+func Run[I any](
 	ctx context.Context,
-	root *Node[I, O],
+	root nodeRunner,
 	input I,
 ) error {
 	if root == nil {
 		return ErrorRootEmpty
 	}
 
-	record, err := execute(ctx, root, input)
+	record, err := root.run(ctx, input)
 	if err == nil {
 		return nil
 	}
 
 	rollbackCtx := context.WithoutCancel(ctx)
-	rollbackErr := rollback(rollbackCtx, record, input)
+	rollbackErr := rollback(rollbackCtx, record)
 
 	return errors.Join(err, rollbackErr)
 }
 
-func execute[I, O any](
+func (n *Node[I, O]) run(
 	ctx context.Context,
-	node *Node[I, O],
-	input I,
-) (*Record[I, O], error) {
-	record := &Record[I, O]{Node: node}
+	input any,
+) (*Record, error) {
+	record := &Record{
+		Node:  n,
+		Input: input,
+	}
 
 	if err := ctx.Err(); err != nil {
 		return record, err
 	}
 
-	switch node.kind {
+	switch n.kind {
 	case Task:
-		if node.execute == nil {
-			return record, ErrorNodeNoExecuteFunc(node.name)
+		if n.execute == nil {
+			return record, ErrorNodeNoExecuteFunc(n.name)
 		}
 
-		output, err := node.execute(ctx, input)
+		typedInput, ok := input.(I)
+		if !ok {
+			return record, fmt.Errorf(
+				"step %q: input type mismatch: got %T",
+				n.name,
+				input,
+			)
+		}
+
+		output, err := n.execute(ctx, typedInput)
 		if err != nil {
-			return record, ErrorNodeExecutedFunc(node.name, err)
+			return record, ErrorNodeExecutedFunc(n.name, err)
 		}
 
-		record.Succeeded = true
 		record.Result = output
+		record.Succeeded = true
 		return record, nil
+
 	case SequenceGroup:
-		for _, child := range node.children {
-			childRecord, err := execute(ctx, child, input)
+		current := input
+
+		for _, child := range n.children {
+			childRecord, err := child.run(ctx, current)
 			record.Children = append(record.Children, childRecord)
 
 			if err != nil {
-				return record, fmt.Errorf("%w: %w", ErrorSequenceType, err)
+				return record, fmt.Errorf(
+					"%w: %w",
+					ErrorSequenceType,
+					err,
+				)
 			}
+
+			current = childRecord.Result
 		}
 
+		record.Result = current
 		record.Succeeded = true
 		return record, nil
+
 	case ParallelGroup:
-		results := make([]*Record[I, O], len(node.children))
-		errs := make([]error, len(node.children))
+		results := make([]*Record, len(n.children))
+		errs := make([]error, len(n.children))
 
 		var wg sync.WaitGroup
 
-		for i, child := range node.children {
-			wg.Go(func() {
-				results[i], errs[i] = execute(ctx, child, input)
-			})
+		for i, child := range n.children {
+			wg.Add(1)
+
+			go func(i int, child nodeRunner) {
+				defer wg.Done()
+				results[i], errs[i] = child.run(ctx, input)
+			}(i, child)
 		}
 
 		wg.Wait()
@@ -83,7 +108,10 @@ func execute[I, O any](
 
 		for i, err := range errs {
 			if err != nil {
-				failures = append(failures, fmt.Errorf("branch %d: %w", i, err))
+				failures = append(
+					failures,
+					fmt.Errorf("branch %d: %w", i, err),
+				)
 			}
 		}
 
@@ -95,8 +123,15 @@ func execute[I, O any](
 			)
 		}
 
+		outputs := make([]any, len(results))
+		for i, childRecord := range results {
+			outputs[i] = childRecord.Result
+		}
+
+		record.Result = outputs
 		record.Succeeded = true
 		return record, nil
+
 	default:
 		return record, ErrorNoneKind
 	}
