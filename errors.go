@@ -25,4 +25,13 @@ var (
 	ErrorCompensationActionFunc = func(name string, err error) error { return fmt.Errorf("%w for %s: %w", ErrorCompensation, name, err) }
 )
 
+var (
+	ErrorRegistryNil          = errors.New("registry is nil")
+	ErrorRegistryName         = errors.New("registry name is empty")
+	ErrorRegistryNilFunc      = errors.New("registry function is nil")
+	ErrorRegistryDuplicate    = errors.New("function already registered")
+	ErrorRegistryNotFound     = errors.New("function not registered")
+	ErrorRegistryTypeMismatch = errors.New("registered function type mismatch")
+)
+
 var ErrorCycle = errors.New("workflow contains a cycle")
