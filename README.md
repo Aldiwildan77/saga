@@ -14,7 +14,7 @@ A lightweight, generic Saga workflow library for Go. Build workflows from compos
 - **Error propagation**: Preserve underlying errors for inspection with `errors.Is`.
 - **Yield support**: Share typed values across steps, including parallel branches.
 - **Flow visualization**: Print an ASCII tree of workflow structure, including sequential, parallel, nested nodes, and compensation.
-- **Cycle detection (TBA)**: Detect cyclic workflow references to prevent invalid workflow structures.
+- **Cycle detection**: Detect a node that contains itself, so invalid workflow structures are caught before execution.
 - **Function registry (TBA)**: Register and resolve reusable task functions by name.
 - **Workflow validation (TBA)**: Validate workflow structure before execution, including invalid nodes and malformed configurations.
 
@@ -239,6 +239,18 @@ sequence
 
 `Visualize` returns `ErrorRootEmpty` for a nil root, `ErrorNodeNoExecuteFunc` for a task without an execute function, and `ErrorNoneKind` or `ErrorNoneMode` for unsupported node kinds or compensation modes.
 
+### Cycle Detection
+
+`DetectCycles` reports `ErrorCycle` when a node appears inside its own subtree. It walks the workflow without running any step.
+
+```go
+if err := saga.DetectCycles(flow); err != nil {
+    log.Fatal(err)
+}
+```
+
+Reusing one node in several places is not a cycle. Only a node that contains itself is reported. Because the builder API composes nodes bottom-up, a cycle can't be built with the public API today; this check protects against invalid structures and makes the workflow walk safe to extend.
+
 ### Error Handling
 
 `Run` returns an error when the workflow fails. The returned error can contain both the execution failure and any compensation failures.
@@ -280,6 +292,7 @@ The repository includes runnable examples:
 | `example/nested-yield` | Nested workflows with yield propagation |
 | `example/parallel` | Concurrent task execution |
 | `example/flow` | Print a workflow's structure with `Visualize` |
+| `example/cycle` | Check a workflow for cycles with `DetectCycles` |
 | `example/parallel-yield` | Yielding typed values from concurrent branches |
 | `example/yield` | Typed value sharing across workflow steps |
 
