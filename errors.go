@@ -25,4 +25,10 @@ var (
 	ErrorCompensationActionFunc = func(name string, err error) error { return fmt.Errorf("%w for %s: %w", ErrorCompensation, name, err) }
 )
 
+var (
+	ErrorGroupEmpty          = errors.New("group has no children")
+	ErrorNilChild            = errors.New("group has a nil child")
+	ErrorCompensationNilFunc = errors.New("compensation action is nil")
+)
+
 var ErrorCycle = errors.New("workflow contains a cycle")
