@@ -22,5 +22,5 @@ var (
 var (
 	ErrorCompensation = errors.New("compensation error")
 
-	ErrorCompensationActionFunc = func(name string, err error) error { return fmt.Errorf("%w for %s %w", ErrorCompensation, name, err) }
+	ErrorCompensationActionFunc = func(name string, err error) error { return fmt.Errorf("%w for %s: %w", ErrorCompensation, name, err) }
 )

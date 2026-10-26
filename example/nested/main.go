@@ -14,33 +14,33 @@ type Order struct {
 
 func main() {
 	flow := saga.Sequence(
-		saga.Do[Order]("validate", func(
+		saga.Do[Order, Order]("validate", func(
 			ctx context.Context, o Order,
-		) (any, error) {
+		) (Order, error) {
 			fmt.Println("validate order")
-			return nil, nil
+			return o, nil
 		}),
 
 		saga.Nested("fulfillment",
-			saga.Do[Order]("reserve", func(
+			saga.Do[Order, Order]("reserve", func(
 				ctx context.Context, o Order,
-			) (any, error) {
+			) (Order, error) {
 				fmt.Println("reserve inventory")
-				return nil, nil
+				return o, nil
 			}),
-			saga.Do[Order]("pack", func(
+			saga.Do[Order, Order]("pack", func(
 				ctx context.Context, o Order,
-			) (any, error) {
+			) (Order, error) {
 				fmt.Println("pack order")
-				return nil, nil
+				return o, nil
 			}),
 		),
 
-		saga.Do[Order]("complete", func(
+		saga.Do[Order, Order]("complete", func(
 			ctx context.Context, o Order,
-		) (any, error) {
+		) (Order, error) {
 			fmt.Println("complete order")
-			return nil, nil
+			return o, nil
 		}),
 	)
 

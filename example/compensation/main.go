@@ -17,11 +17,11 @@ func main() {
 	order := Order{ID: "order-789"}
 
 	flow := saga.Sequence(
-		saga.Do[Order]("reserve-inventory", func(
+		saga.Do[Order, Order]("reserve-inventory", func(
 			ctx context.Context, order Order,
-		) (any, error) {
+		) (Order, error) {
 			fmt.Println("reserve inventory")
-			return nil, nil
+			return order, nil
 		}).Compensate(saga.ParallelCompensations[Order](
 			func(context.Context, Order) (any, error) {
 				fmt.Println("release inventory")
@@ -33,11 +33,11 @@ func main() {
 			},
 		)),
 
-		saga.Do[Order]("charge-payment", func(
+		saga.Do[Order, Order]("charge-payment", func(
 			ctx context.Context, order Order,
-		) (any, error) {
+		) (Order, error) {
 			fmt.Println("charge payment")
-			return nil, nil
+			return order, nil
 		}).Compensate(saga.SequentialCompensations[Order](
 			func(context.Context, Order) (any, error) {
 				fmt.Println("record refund")
@@ -49,11 +49,11 @@ func main() {
 			},
 		)),
 
-		saga.Do[Order]("create-shipment", func(
+		saga.Do[Order, Order]("create-shipment", func(
 			ctx context.Context, order Order,
-		) (any, error) {
+		) (Order, error) {
 			fmt.Println("create shipment")
-			return nil, errors.New("shipping service unavailable")
+			return order, errors.New("shipping service unavailable")
 		}),
 	)
 

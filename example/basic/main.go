@@ -17,21 +17,21 @@ func main() {
 	order := Order{ID: "order-456"}
 
 	flow := saga.Sequence(
-		saga.Do[Order]("validate-order", func(
+		saga.Do[Order, Order]("validate-order", func(
 			ctx context.Context,
 			order Order,
-		) (any, error) {
+		) (Order, error) {
 			fmt.Println("validate order:", order.ID)
-			return nil, nil
+			return order, nil
 		}),
 
 		saga.Nested("prepare-order",
-			saga.Do[Order]("reserve-inventory", func(
+			saga.Do[Order, Order]("reserve-inventory", func(
 				ctx context.Context,
 				order Order,
-			) (any, error) {
+			) (Order, error) {
 				fmt.Println("reserve inventory:", order.ID)
-				return nil, nil
+				return order, nil
 			}).Compensate(saga.ParallelCompensations[Order](
 				func(context.Context, Order) (any, error) {
 					fmt.Println("release inventory")
@@ -43,22 +43,22 @@ func main() {
 				},
 			)),
 
-			saga.Do[Order]("verify-address", func(
+			saga.Do[Order, Order]("verify-address", func(
 				ctx context.Context,
 				order Order,
-			) (any, error) {
+			) (Order, error) {
 				fmt.Println("verify address:", order.ID)
-				return nil, nil
+				return order, nil
 			}),
 		),
 
 		saga.Parallel(
-			saga.Do[Order]("charge-payment", func(
+			saga.Do[Order, Order]("charge-payment", func(
 				ctx context.Context,
 				order Order,
-			) (any, error) {
+			) (Order, error) {
 				fmt.Println("charge payment:", order.ID)
-				return nil, nil
+				return order, nil
 			}).Compensate(saga.SequentialCompensations[Order](
 				func(context.Context, Order) (any, error) {
 					fmt.Println("record refund")
@@ -70,22 +70,23 @@ func main() {
 				},
 			)),
 
-			saga.Do[Order]("create-shipment", func(
+			saga.Do[Order, Order]("create-shipment", func(
 				ctx context.Context,
 				order Order,
-			) (any, error) {
+			) (Order, error) {
 				fmt.Println("create shipment:", order.ID)
-				return nil, nil
+				return order, nil
 			}),
 		),
 
 		saga.Nested("finalize-order",
-			saga.Do[Order]("confirm-order", func(
+			// Parallel emits one result per branch, so the next step receives []any.
+			saga.Do[[]any, []any]("confirm-order", func(
 				ctx context.Context,
-				order Order,
-			) (any, error) {
-				fmt.Println("confirm order:", order.ID)
-				return nil, nil
+				results []any,
+			) ([]any, error) {
+				fmt.Println("confirm order:", order.ID, "branches:", len(results))
+				return results, nil
 			}),
 		),
 	)
