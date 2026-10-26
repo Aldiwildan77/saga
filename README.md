@@ -13,7 +13,7 @@ A lightweight, generic Saga workflow library for Go. Build workflows from compos
 - **Context support**: Respect cancellation during execution.
 - **Error propagation**: Preserve underlying errors for inspection with `errors.Is`.
 - **Yield support**: Share typed values across steps, including parallel branches.
-- **Flow visualization (TBA)**: Generate an ASCII representation of workflow structure, including sequential, parallel, and nested nodes.
+- **Flow visualization**: Print an ASCII tree of workflow structure, including sequential, parallel, nested nodes, and compensation.
 - **Cycle detection (TBA)**: Detect cyclic workflow references to prevent invalid workflow structures.
 - **Function registry (TBA)**: Register and resolve reusable task functions by name.
 - **Workflow validation (TBA)**: Validate workflow structure before execution, including invalid nodes and malformed configurations.
@@ -213,6 +213,32 @@ Rollback runs on a context that is not cancelled, so compensations still run aft
 
 Compensation is a business operation, not a database rollback. Each compensating action should handle its own failures and should ideally be safe to retry.
 
+### Flow Visualization
+
+`Visualize` returns an ASCII tree of a workflow without running any step. Sequences, parallel groups, nested groups, and compensation plans are all shown.
+
+```go
+tree, err := saga.Visualize(flow)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Print(tree)
+```
+
+```text
+sequence
+├── validate-order
+├── nested prepare-order
+│   ├── reserve-inventory [compensate: parallel x2]
+│   └── verify-address
+└── parallel
+    ├── charge-payment [compensate: sequential x1]
+    └── create-shipment
+```
+
+`Visualize` returns `ErrorRootEmpty` for a nil root, `ErrorNodeNoExecuteFunc` for a task without an execute function, and `ErrorNoneKind` or `ErrorNoneMode` for unsupported node kinds or compensation modes.
+
 ### Error Handling
 
 `Run` returns an error when the workflow fails. The returned error can contain both the execution failure and any compensation failures.
@@ -253,6 +279,7 @@ The repository includes runnable examples:
 | `example/nested` | Nested workflow composition |
 | `example/nested-yield` | Nested workflows with yield propagation |
 | `example/parallel` | Concurrent task execution |
+| `example/flow` | Print a workflow's structure with `Visualize` |
 | `example/parallel-yield` | Yielding typed values from concurrent branches |
 | `example/yield` | Typed value sharing across workflow steps |
 
