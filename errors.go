@@ -24,3 +24,5 @@ var (
 
 	ErrorCompensationActionFunc = func(name string, err error) error { return fmt.Errorf("%w for %s: %w", ErrorCompensation, name, err) }
 )
+
+var ErrorCycle = errors.New("workflow contains a cycle")
