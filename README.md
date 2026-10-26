@@ -23,6 +23,7 @@ A lightweight, generic Saga workflow library for Go. Build workflows from compos
 - **Execution hooks (TBA)**: Observe step start, completion, failure, retry, and compensation through optional callbacks for logging, metrics, and tracing.
 - **Execution report (TBA)**: Return a structured report tree of every step and compensation, with JSON marshalling for logging and auditing.
 - **Typed errors (TBA)**: Return step and compensation failures as typed errors that carry the failing step name, while keeping `errors.Is` support.
+- **Execution modes (TBA)**: Choose whether a failure rolls back executed steps or stops without rollback.
 
 ## Installation
 
