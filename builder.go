@@ -26,6 +26,27 @@ type nodeRunner interface {
 	nodeName() string
 	run(context.Context, any) (*Record, error)
 	compensateNode(context.Context, any) error
+	describe() nodeDescription
+}
+
+type nodeDescription struct {
+	name          string
+	kind          Kind
+	children      []nodeRunner
+	executable    bool
+	mode          Mode
+	compensations int
+}
+
+func (n *Node[I, O]) describe() nodeDescription {
+	return nodeDescription{
+		name:          n.name,
+		kind:          n.kind,
+		children:      n.children,
+		executable:    n.execute != nil,
+		mode:          n.compensate.mode,
+		compensations: len(n.compensate.actions),
+	}
 }
 
 func (n *Node[I, O]) nodeKind() Kind {
