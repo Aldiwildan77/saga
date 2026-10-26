@@ -26,9 +26,15 @@ var (
 )
 
 var (
-	ErrorGroupEmpty          = errors.New("group has no children")
-	ErrorNilChild            = errors.New("group has a nil child")
-	ErrorCompensationNilFunc = errors.New("compensation action is nil")
+	ErrorGroupEmpty           = errors.New("group has no children")
+	ErrorNilChild             = errors.New("group has a nil child")
+	ErrorCompensationNilFunc  = errors.New("compensation action is nil")
+	ErrorRegistryNil          = errors.New("registry is nil")
+	ErrorRegistryName         = errors.New("registry name is empty")
+	ErrorRegistryNilFunc      = errors.New("registry function is nil")
+	ErrorRegistryDuplicate    = errors.New("function already registered")
+	ErrorRegistryNotFound     = errors.New("function not registered")
+	ErrorRegistryTypeMismatch = errors.New("registered function type mismatch")
 )
 
 var ErrorCycle = errors.New("workflow contains a cycle")
