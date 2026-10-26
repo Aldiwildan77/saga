@@ -15,7 +15,7 @@ A lightweight, generic Saga workflow library for Go. Build workflows from compos
 - **Yield support**: Share typed values across steps, including parallel branches.
 - **Flow visualization**: Print an ASCII tree of workflow structure, including sequential, parallel, nested nodes, and compensation.
 - **Cycle detection (TBA)**: Detect cyclic workflow references to prevent invalid workflow structures.
-- **Function registry (TBA)**: Register and resolve reusable task functions by name.
+- **Function registry**: Register reusable task functions by name and build tasks from them.
 - **Workflow validation (TBA)**: Validate workflow structure before execution, including invalid nodes and malformed configurations.
 
 ## Installation
@@ -239,6 +239,27 @@ sequence
 
 `Visualize` returns `ErrorRootEmpty` for a nil root, `ErrorNodeNoExecuteFunc` for a task without an execute function, and `ErrorNoneKind` or `ErrorNoneMode` for unsupported node kinds or compensation modes.
 
+### Function Registry
+
+A `Registry` stores task functions by name so they can be defined once and reused across workflows. It is safe for concurrent use, and its zero value is ready to use.
+
+```go
+reg := saga.NewRegistry()
+
+err := saga.Register(reg, "validate", saga.Action[Order, Order](
+    func(ctx context.Context, o Order) (Order, error) {
+        return o, nil
+    },
+))
+
+validate, err := saga.DoFrom[Order, Order](reg, "validate")
+
+flow := saga.Sequence(validate /* , ... */)
+```
+
+- `Register` returns `ErrorRegistryNil`, `ErrorRegistryName`, `ErrorRegistryNilFunc`, or `ErrorRegistryDuplicate`. A name can be registered only once.
+- `Resolve` and `DoFrom` return `ErrorRegistryNil` or `ErrorRegistryNotFound`, and `ErrorRegistryTypeMismatch` when the requested input and output types differ from the registered ones.
+
 ### Error Handling
 
 `Run` returns an error when the workflow fails. The returned error can contain both the execution failure and any compensation failures.
@@ -280,6 +301,7 @@ The repository includes runnable examples:
 | `example/nested-yield` | Nested workflows with yield propagation |
 | `example/parallel` | Concurrent task execution |
 | `example/flow` | Print a workflow's structure with `Visualize` |
+| `example/registry` | Register task functions by name and reuse them |
 | `example/parallel-yield` | Yielding typed values from concurrent branches |
 | `example/yield` | Typed value sharing across workflow steps |
 
