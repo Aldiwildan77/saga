@@ -16,7 +16,7 @@ A lightweight, generic Saga workflow library for Go. Build workflows from compos
 - **Flow visualization**: Print an ASCII tree of workflow structure, including sequential, parallel, nested nodes, and compensation.
 - **Cycle detection (TBA)**: Detect cyclic workflow references to prevent invalid workflow structures.
 - **Function registry (TBA)**: Register and resolve reusable task functions by name.
-- **Workflow validation (TBA)**: Validate workflow structure before execution, including invalid nodes and malformed configurations.
+- **Workflow validation**: Check workflow structure before execution and report every problem at once.
 
 ## Installation
 
@@ -239,6 +239,26 @@ sequence
 
 `Visualize` returns `ErrorRootEmpty` for a nil root, `ErrorNodeNoExecuteFunc` for a task without an execute function, and `ErrorNoneKind` or `ErrorNoneMode` for unsupported node kinds or compensation modes.
 
+### Workflow Validation
+
+`Validate` checks a workflow's structure without running any step. It reports every problem it finds, joined into one error, so all issues can be fixed in one pass.
+
+```go
+if err := saga.Validate(flow); err != nil {
+    log.Fatal(err)
+}
+```
+
+`Validate` detects:
+
+- `ErrorRootEmpty`: nil root
+- `ErrorNodeNoExecuteFunc`: a task without an execute function
+- `ErrorGroupEmpty`: a sequence, parallel, or nested group with no children
+- `ErrorNilChild`: a group that contains a nil node
+- `ErrorNoneKind`: an unsupported node kind
+- `ErrorNoneMode`: an unsupported compensation mode
+- `ErrorCompensationNilFunc`: a compensation list that contains a nil action
+
 ### Error Handling
 
 `Run` returns an error when the workflow fails. The returned error can contain both the execution failure and any compensation failures.
@@ -280,6 +300,7 @@ The repository includes runnable examples:
 | `example/nested-yield` | Nested workflows with yield propagation |
 | `example/parallel` | Concurrent task execution |
 | `example/flow` | Print a workflow's structure with `Visualize` |
+| `example/validate` | Report every structural problem in a workflow with `Validate` |
 | `example/parallel-yield` | Yielding typed values from concurrent branches |
 | `example/yield` | Typed value sharing across workflow steps |
 
