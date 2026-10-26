@@ -25,6 +25,7 @@ A lightweight, generic Saga workflow library for Go. Build workflows from compos
 - **Typed errors (TBA)**: Return step and compensation failures as typed errors that carry the failing step name, while keeping `errors.Is` support.
 - **Execution modes (TBA)**: Choose whether a failure rolls back executed steps or stops without rollback.
 - **Crash recovery (TBA)**: Journal progress to a local file so a workflow can resume or finish compensating after a process crash. Off by default.
+- **Idempotent resume (TBA)**: Document the rules that make resumed steps and compensations safe to run again.
 
 ## Installation
 
