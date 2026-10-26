@@ -20,6 +20,7 @@ A lightweight, generic Saga workflow library for Go. Build workflows from compos
 - **Retry policies (TBA)**: Retry a failed task with fixed, exponential, or no-delay backoff, with optional jitter and a delay cap.
 - **Per-step timeout (TBA)**: Limit how long a task may run. A timeout fails the step and triggers compensation.
 - **Parallel fail-fast (TBA)**: When a parallel branch fails, cancel the remaining branches and compensate the ones that succeeded.
+- **Execution hooks (TBA)**: Observe step start, completion, failure, retry, and compensation through optional callbacks for logging, metrics, and tracing.
 
 ## Installation
 
