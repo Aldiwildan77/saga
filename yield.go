@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sync"
 )
 
 type Yielder interface {
@@ -15,6 +16,7 @@ type Yielder interface {
 type YieldContext struct {
 	context.Context
 	parent Yielder
+	mu     sync.RWMutex
 	values map[any]any
 }
 
@@ -37,7 +39,11 @@ func NewYieldContext(ctx context.Context) Yielder {
 	}
 }
 
+// Set is safe for concurrent use: parallel branches share one context.
 func (c *YieldContext) Set(key, value any) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	if c.values == nil {
 		c.values = make(map[any]any)
 	}
@@ -45,14 +51,18 @@ func (c *YieldContext) Set(key, value any) {
 }
 
 func (c *YieldContext) Get(key any) (any, bool) {
-	if c.values != nil {
-		if value, ok := c.values[key]; ok {
-			return value, true
-		}
+	c.mu.RLock()
+	value, ok := c.values[key]
+	c.mu.RUnlock()
+
+	if ok {
+		return value, true
 	}
+
 	if c.parent != nil {
 		return c.parent.Get(key)
 	}
+
 	return nil, false
 }
 
@@ -66,11 +76,12 @@ func Yield[I any](ctx Yielder, value I) {
 
 func YieldValue[O any](ctx Yielder) (O, error) {
 	var zero O
+	key := reflect.TypeFor[O]()
+
 	if ctx == nil {
-		return zero, fmt.Errorf("yield value of type %v not found", reflect.TypeFor[O]())
+		return zero, fmt.Errorf("yield value of type %v not found", key)
 	}
 
-	key := reflect.TypeFor[O]()
 	value, ok := ctx.Get(key)
 	if !ok {
 		return zero, fmt.Errorf("yield value of type %v not found", key)
