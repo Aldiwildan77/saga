@@ -364,3 +364,7 @@ go test -race ./...
 - Separate execution logic from compensation logic.
 - Execute independent work concurrently only when appropriate.
 - Preserve execution errors and compensation errors for diagnosis.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE). Contributions are welcome.
