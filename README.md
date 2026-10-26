@@ -22,6 +22,7 @@ A lightweight, generic Saga workflow library for Go. Build workflows from compos
 - **Parallel fail-fast (TBA)**: When a parallel branch fails, cancel the remaining branches and compensate the ones that succeeded.
 - **Execution hooks (TBA)**: Observe step start, completion, failure, retry, and compensation through optional callbacks for logging, metrics, and tracing.
 - **Execution report (TBA)**: Return a structured report tree of every step and compensation, with JSON marshalling for logging and auditing.
+- **Typed errors (TBA)**: Return step and compensation failures as typed errors that carry the failing step name, while keeping `errors.Is` support.
 
 ## Installation
 
