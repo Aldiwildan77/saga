@@ -17,6 +17,7 @@ A lightweight, generic Saga workflow library for Go. Build workflows from compos
 - **Cycle detection**: Detect a node that contains itself, so invalid workflow structures are caught before execution.
 - **Workflow validation**: Check workflow structure before execution and report every problem at once.
 - **Function registry**: Register reusable task functions by name and build tasks from them.
+- **Retry policies (TBA)**: Retry a failed task with fixed, exponential, or no-delay backoff, with optional jitter and a delay cap.
 
 ## Installation
 
