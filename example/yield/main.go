@@ -18,7 +18,7 @@ type CheckoutResponse struct {
 
 func main() {
 	flow := saga.Sequence(
-		saga.Do[Checkout]("checkout", func(ctx context.Context, payload Checkout) (CheckoutResponse, error) {
+		saga.Do[Checkout, CheckoutResponse]("checkout", func(ctx context.Context, payload Checkout) (CheckoutResponse, error) {
 			y, ok := ctx.(saga.Yielder)
 			if !ok {
 				return CheckoutResponse{}, fmt.Errorf("context is not yield-enabled")
@@ -29,7 +29,9 @@ func main() {
 			fmt.Println("checkout yielded:", response.ItemIDs)
 			return response, nil
 		}),
-		saga.Do[Checkout]("send-email", func(ctx context.Context, payload Checkout) (bool, error) {
+
+		// The previous step's output is the input here; the yielded value is read back by type.
+		saga.Do[CheckoutResponse, bool]("send-email", func(ctx context.Context, _ CheckoutResponse) (bool, error) {
 			y, ok := ctx.(saga.Yielder)
 			if !ok {
 				return false, fmt.Errorf("context is not yield-enabled")
