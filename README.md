@@ -378,4 +378,4 @@ go test -race ./...
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE). Contributions are welcome.
+This project is licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for copyright. Contributions are welcome and are licensed under the same terms (Apache-2.0 Section 5).
