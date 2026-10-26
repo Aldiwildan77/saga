@@ -26,6 +26,9 @@ var (
 )
 
 var (
+	ErrorGroupEmpty           = errors.New("group has no children")
+	ErrorNilChild             = errors.New("group has a nil child")
+	ErrorCompensationNilFunc  = errors.New("compensation action is nil")
 	ErrorRegistryNil          = errors.New("registry is nil")
 	ErrorRegistryName         = errors.New("registry name is empty")
 	ErrorRegistryNilFunc      = errors.New("registry function is nil")

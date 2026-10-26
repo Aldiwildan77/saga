@@ -36,9 +36,17 @@ type nodeDescription struct {
 	executable    bool
 	mode          Mode
 	compensations int
+	nilActions    int
 }
 
 func (n *Node[I, O]) describe() nodeDescription {
+	nilActions := 0
+	for _, action := range n.compensate.actions {
+		if action == nil {
+			nilActions++
+		}
+	}
+
 	return nodeDescription{
 		name:          n.name,
 		kind:          n.kind,
@@ -46,6 +54,7 @@ func (n *Node[I, O]) describe() nodeDescription {
 		executable:    n.execute != nil,
 		mode:          n.compensate.mode,
 		compensations: len(n.compensate.actions),
+		nilActions:    nilActions,
 	}
 }
 
